@@ -1,16 +1,13 @@
 {
     "name": "micro-flare",
-    "version": "1.0.0",
+    "version": "1.0.6",
     "description": "Independent HTTP microserver based on typescript and decorators.",
     "license": "MIT",
     "author": "Ai Chen",
     "homepage": "https://github.com/seatwork",
     "repository": "https://github.com/seatwork/micro-flare.git",
     "url": "https://github.com/seatwork/micro-flare",
-    "main": "dist/Application.js",
-    "scripts": {
-        "build": "tsc"
-    },
+    "main": "index.js",
     "devDependencies": {
         "@types/node": "^14.14.37"
     },
@@ -18,9 +15,7 @@
         "reflect-metadata": "^0.1.13"
     },
     "files": [
-        "dist",
-        "package.json",
-        "README.md"
+        "../README.md"
     ],
     "keywords": [
         "typescript",

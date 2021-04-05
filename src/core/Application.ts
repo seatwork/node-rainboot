@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { Server } from './web/Server';
+import { Server } from '../web/Server';
 
 /**
  * 应用程序启动类

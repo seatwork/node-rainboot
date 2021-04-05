@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES6",
     "module": "commonjs",
-    // "declaration": true, 
+    "declaration": true,
     "rootDir": "src",
     "outDir": "lib",
     "strict": true,
@@ -12,6 +12,6 @@
     "emitDecoratorMetadata": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": false
+    "resolveJsonModule": true
   }
 }

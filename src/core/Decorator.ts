@@ -1,8 +1,8 @@
 import path from "path";
 import 'reflect-metadata';
+import { Route } from "../web/Route";
+import { Router } from "../web/Router";
 import { METADATA_ARGS, METADATA_ROUTES, METHOD_DELETE, METHOD_GET, METHOD_HEAD, METHOD_OPTIONS, METHOD_PATCH, METHOD_POST, METHOD_PUT, PARAM_REQUEST, PARAM_RESPONSE } from "./Constant";
-import { Route } from "./web/Route";
-import { Router } from "./web/Router";
 
 /**
  * 创建方法装饰器

@@ -1,9 +1,9 @@
 import Http from 'http';
-import { name, url, version } from '../../package.json';
-import { PARAM_REQUEST, PARAM_RESPONSE, REQUEST_FIELD_BODY, REQUEST_FIELD_COOKIES, REQUEST_FIELD_HEADERS, REQUEST_FIELD_METHOD, REQUEST_FIELD_PARAM, REQUEST_FIELD_QUERY, REQUEST_FIELD_URL } from '../Constant';
+import { PARAM_REQUEST, PARAM_RESPONSE, REQUEST_FIELD_BODY, REQUEST_FIELD_COOKIES, REQUEST_FIELD_HEADERS, REQUEST_FIELD_METHOD, REQUEST_FIELD_PARAM, REQUEST_FIELD_QUERY, REQUEST_FIELD_URL } from '../core/Constant';
 import { HttpRequest } from '../http/HttpRequest';
 import { HttpResponse } from '../http/HttpResponse';
 import { HttpStatus } from '../http/HttpStatus';
+import { name, url, version } from '../package.json';
 import { Strings } from '../util/Strings';
 import { Route } from './Route';
 import { Router } from './Router';
@@ -24,7 +24,7 @@ export class Server {
 
     /**
      * 启动应用服务器
-     * @param port 
+     * @param port
      */
     run(port: number) {
         this.server.listen(port, () => {
@@ -35,9 +35,9 @@ export class Server {
 
     /**
      * 请求处理入口
-     * @param request 
-     * @param response 
-     * @returns 
+     * @param request
+     * @param response
+     * @returns
      */
     private async handleRequest(req: Http.IncomingMessage, res: Http.ServerResponse) {
         // 封装请求和响应
@@ -77,10 +77,10 @@ export class Server {
 
     /**
      * 解析参数装饰器并代理控制器方法
-     * @param request 
-     * @param response 
-     * @param route 
-     * @returns 
+     * @param request
+     * @param response
+     * @param route
+     * @returns
      */
     private createProxyHandle(request: HttpRequest, response: HttpResponse, route: Route) {
         const handle = route.controller[route.handle]
@@ -103,10 +103,10 @@ export class Server {
 
     /**
      * 根据参数装饰器的 field 获取对应数据
-     * @param request 
-     * @param route 
-     * @param field 
-     * @returns 
+     * @param request
+     * @param route
+     * @param field
+     * @returns
      */
     private async getRequest(request: HttpRequest, route: Route, field: string) {
         if (!field) return request;
