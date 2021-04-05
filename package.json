@@ -8,15 +8,15 @@
     "repository": "https://github.com/seatwork/micro-flare.git",
     "url": "https://github.com/seatwork/micro-flare",
     "main": "index.js",
+    "scripts": {
+        "build": "tsc && cp -f package.json README.md lib"
+    },
     "devDependencies": {
         "@types/node": "^14.14.37"
     },
     "dependencies": {
         "reflect-metadata": "^0.1.13"
     },
-    "files": [
-        "../README.md"
-    ],
     "keywords": [
         "typescript",
         "decorator",
