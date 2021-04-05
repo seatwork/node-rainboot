@@ -9,8 +9,7 @@
     "url": "https://github.com/seatwork/micro-flare",
     "main": "dist/Application.js",
     "scripts": {
-        "start": "node dist/test/TestApplication.js",
-        "dev": "tsc -w & nodemon dist/test/TestApplication.js"
+        "build": "tsc"
     },
     "devDependencies": {
         "@types/node": "^14.14.37"
