@@ -1,6 +1,6 @@
 import Http from 'http';
 import { url, version } from '../../package.json';
-import { PARAM_REQUEST, PARAM_RESPONSE, REQUEST_FIELD_BODY, REQUEST_FIELD_HEADERS, REQUEST_FIELD_PARAM, REQUEST_FIELD_QUERY } from '../Constant';
+import { PARAM_REQUEST, PARAM_RESPONSE, REQUEST_FIELD_BODY, REQUEST_FIELD_COOKIES, REQUEST_FIELD_HEADERS, REQUEST_FIELD_METHOD, REQUEST_FIELD_PARAM, REQUEST_FIELD_QUERY, REQUEST_FIELD_URL } from '../Constant';
 import { HttpRequest } from '../http/HttpRequest';
 import { HttpResponse } from '../http/HttpResponse';
 import { HttpStatus } from '../http/HttpStatus';
@@ -11,6 +11,7 @@ import { Router } from './Router';
  * 应用服务器
  */
 export class Server {
+
     private server: Http.Server;
 
     /**
@@ -41,12 +42,14 @@ export class Server {
         // 封装请求和响应
         const request = new HttpRequest(req);
         const response = new HttpResponse(res);
+        const method = request.getMethod();
+        const url = request.getUrl();
 
         try {
             // 查找路由（未找到则返回404状态）
-            const route = Router.findRoute(request.getMethod(), request.getUrl());
+            const route = Router.findRoute(method, url);
             if (!route) {
-                response.send('Route not found: ' + request.getUrl(), HttpStatus.NOT_FOUND);
+                response.send(`Route not found: ${url}`, HttpStatus.NOT_FOUND);
                 return;
             }
 
@@ -66,7 +69,7 @@ export class Server {
                 response.send(result);
             }
         } catch (e) {
-            console.error('\x1b[31m[ERROR]\x1b[0m', request.getMethod(), request.getUrl(), e.stack || e)
+            console.error('\x1b[31m[ERROR]\x1b[0m', method, url, e.stack || e)
             response.send(e.message || e.stack || e, e.status || HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -79,7 +82,7 @@ export class Server {
      * @returns 
      */
     private createProxyHandle(request: HttpRequest, response: HttpResponse, route: Route) {
-        const handler = route.controller[route.handle]
+        const handle = route.controller[route.handle]
 
         // 返回代理后的方法
         return async () => {
@@ -93,12 +96,12 @@ export class Server {
                     default: break;
                 }
             }
-            return await handler.apply(route.controller, args);
+            return await handle.apply(route.controller, args);
         }
     }
 
     /**
-     * 根据参数装饰器的field获取对应数据
+     * 根据参数装饰器的 field 获取对应数据
      * @param request 
      * @param route 
      * @param field 
@@ -108,8 +111,11 @@ export class Server {
         if (!field) return request;
 
         switch (field.toUpperCase()) {
+            case REQUEST_FIELD_METHOD: return request.getMethod();
+            case REQUEST_FIELD_URL: return request.getUrl();
             case REQUEST_FIELD_HEADERS: return request.getHeaders();
-            case REQUEST_FIELD_BODY: return await request.getRawBody();
+            case REQUEST_FIELD_COOKIES: return request.getCookies();
+            case REQUEST_FIELD_BODY: return await request.getBody();
             case REQUEST_FIELD_PARAM: return route.param;
             case REQUEST_FIELD_QUERY: return route.query;
             default: return request;

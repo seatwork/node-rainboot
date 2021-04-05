@@ -8,10 +8,18 @@ export class Router {
     private static readonly PATH_REGEX: string = '[a-zA-Z0-9_@\\-\\.]+';
     private static readonly routes: Route[] = [];
 
+    /**
+     * 添加路由
+     * @param route 
+     */
     static addRoute(route: Route) {
         Router.routes.push(route);
     }
 
+    /**
+     * 获取所有路由
+     * @returns 
+     */
     static getRoutes() {
         return Router.routes;
     }
@@ -28,6 +36,7 @@ export class Router {
         for (let route of Router.routes) {
             if (route.method === method) {
 
+                // 匹配路径中的正则表达式
                 const parsedUrl = new URL(url, 'http://localhost');
                 const pattern = route.path.replace(new RegExp(':(' + Router.PATH_REGEX + ')', 'g'), '(?<$1>' + Router.PATH_REGEX + ')')
                 const result = parsedUrl.pathname.match('^' + pattern + '$')

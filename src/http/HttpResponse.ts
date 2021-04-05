@@ -2,7 +2,7 @@ import Http from 'http';
 import { HttpStatus } from './HttpStatus';
 
 /**
- * Http ServerResponse 封装
+ * Http.ServerResponse 封装
  */
 export class HttpResponse {
 
@@ -32,10 +32,6 @@ export class HttpResponse {
         this.response.end(data);
     }
 
-    setHeader(key: string, value: string) {
-        this.response.setHeader(key, value);
-    }
-
     /**
      * 是否已发送响应头
      * @returns 
@@ -44,6 +40,21 @@ export class HttpResponse {
         return this.response.headersSent;
     }
 
+    /**
+     * 设置响应头
+     * @param key 
+     * @param value 
+     */
+    setHeader(key: string, value: string) {
+        this.response.setHeader(key, value);
+    }
+
+    /**
+     * 设置 Cookie
+     * @param key 
+     * @param value 
+     * @param options 
+     */
     setCookie(key: string, value: string, options: any = {}) {
         const cookies = [`${key}=${value}`];
         if (options.domain) {
@@ -56,9 +67,6 @@ export class HttpResponse {
             cookies.push(`httpOnly=true`)
         }
         this.setHeader('Set-Cookie', cookies.join('; '));
-    }
-
-    serve() {
     }
 
     /**

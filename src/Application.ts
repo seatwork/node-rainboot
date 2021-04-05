@@ -16,6 +16,22 @@ export class Application {
     }
 
     /**
+     * 设置静态资源目录
+     * @param dir
+     */
+    setStaticResourcePath(dir: string) {
+
+    }
+
+    /**
+     * 设置模板文件目录
+     * @param dir
+     */
+    setTemplatePath(dir: string) {
+
+    }
+
+    /**
      * 启动应用服务器
      * @param port 默认端口 3000
      */

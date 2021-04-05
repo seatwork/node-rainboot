@@ -65,7 +65,7 @@ export const Head = createMethodDecorator(METHOD_HEAD);
 export const Options = createMethodDecorator(METHOD_OPTIONS);
 
 /**
- * 导出方法参数装饰器
+ * 导出参数装饰器
  */
 export const Request = createParamDecorator(PARAM_REQUEST);
 export const Response = createParamDecorator(PARAM_RESPONSE);

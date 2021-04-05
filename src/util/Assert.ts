@@ -12,7 +12,7 @@ export class Assert {
      * @param message 
      * @param status 
      */
-    public static isTrue(expression: boolean, message: string, status?: number) {
+    static isTrue(expression: boolean, message: string, status?: number) {
         if (!expression) throw new HttpError(message, status);
     }
 

@@ -2,7 +2,7 @@ import Http from 'http';
 import { parse } from 'querystring';
 
 /**
- * Http IncomingMessage 封装
+ * Http.IncomingMessage 封装
  */
 export class HttpRequest {
 
@@ -38,42 +38,37 @@ export class HttpRequest {
 
     /**
      * 获取指定请求头
-     * @param field 
+     * @param key 
      * @returns 
      */
-    getHeader(field: string) {
-        return this.request.headers[field];
+    getHeader(key: string) {
+        return this.request.headers[key];
     }
 
     /**
      * 获取请求体
      * @returns 
      */
-    getRawBody() {
+    getBody() {
         return this.parseRawBody();
     }
 
     /**
-     * 获取 Cookie
+     * 获取 Cookies
      * @returns 
      */
     getCookies() {
         const cookies: any = {};
         let cookie = this.getHeader('cookie') as string;
         if (cookie) {
-            const cookieArray = cookie.split(/;\s+/)
-            cookieArray.forEach(c => {
-                const i = c.indexOf('=')
-                const k = c.substr(0, i)
-                const v = c.substr(i + 1)
-                cookies[k] = v
+            cookie.split(/;\s+/).forEach(c => {
+                const i = c.indexOf('=');
+                const k = c.substr(0, i);
+                const v = c.substr(i + 1);
+                cookies[k] = v;
             })
         }
         return cookies;
-    }
-
-    getSession() {
-
     }
 
     /**
@@ -82,27 +77,27 @@ export class HttpRequest {
      */
     private parseRawBody() {
         return new Promise((resolve, reject) => {
-            const buffer: Uint8Array[] = []
-            this.request.on('data', (chunk: Uint8Array) => {
-                buffer.push(chunk)
-            })
+            const buffer: Uint8Array[] = [];
+            this.request.on('data', chunk => {
+                buffer.push(chunk);
+            });
             this.request.on('error', err => {
-                reject(err)
-            })
+                reject(err);
+            });
             this.request.on('end', () => {
-                let data: any = Buffer.concat(buffer).toString('utf8')
-                const contentType = this.getHeader('content-type')
+                let data: any = Buffer.concat(buffer).toString('utf8');
+                const contentType = this.getHeader('content-type');
 
                 if (contentType) {
                     if (contentType.indexOf('application/x-www-form-urlencoded') >= 0) {
-                        data = parse(data)
+                        data = parse(data);
                     } else if (contentType.indexOf('application/json') >= 0) {
-                        data = this.tryParseJson(data)
+                        data = this.tryParseJson(data);
                     }
                 }
-                resolve(data)
-            })
-        })
+                resolve(data);
+            });
+        });
     }
 
     /**
@@ -112,9 +107,9 @@ export class HttpRequest {
      */
     private tryParseJson(data: string) {
         try {
-            return JSON.parse(data)
+            return JSON.parse(data);
         } catch (e) {
-            return data
+            return data;
         }
     }
 
