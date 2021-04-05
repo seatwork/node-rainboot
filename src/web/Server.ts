@@ -1,11 +1,10 @@
 import Http from 'http';
-import { PARAM_REQUEST, PARAM_RESPONSE, REQUEST_FIELD_BODY, REQUEST_FIELD_COOKIES, REQUEST_FIELD_HEADERS, REQUEST_FIELD_METHOD, REQUEST_FIELD_PARAM, REQUEST_FIELD_QUERY, REQUEST_FIELD_URL } from '../core/Constant';
+import { Container } from '../core/Container';
 import { HttpRequest } from '../http/HttpRequest';
 import { HttpResponse } from '../http/HttpResponse';
 import { HttpStatus } from '../http/HttpStatus';
 import { name, url, version } from '../package.json';
 import { Strings } from '../util/Strings';
-import { Route } from './Route';
 import { Router } from './Router';
 
 /**
@@ -13,12 +12,13 @@ import { Router } from './Router';
  */
 export class Server {
 
+    private container = Container.getInstance();
     private server: Http.Server;
 
     /**
      * 创建应用服务器
      */
-    constructor() {
+    public constructor() {
         this.server = Http.createServer((req, res) => this.handleRequest(req, res));
     }
 
@@ -26,7 +26,7 @@ export class Server {
      * 启动应用服务器
      * @param port
      */
-    run(port: number) {
+    public run(port: number) {
         this.server.listen(port, () => {
             console.log(`\x1b[90m${Strings.capitalizeFirstChar(name)} ^${version} - ${url}\x1b[0m`)
             console.log(`> \x1b[32mReady!\x1b[0m Running at \x1b[4m\x1b[36mhttp://localhost:${port}\x1b[0m`)
@@ -43,83 +43,66 @@ export class Server {
         // 封装请求和响应
         const request = new HttpRequest(req);
         const response = new HttpResponse(res);
+
+        // 遍历执行中间件
+        for (const middleware of this.container.getMiddlewares()) {
+            middleware.perform(request, response);
+        }
+
         const method = request.getMethod();
         const url = request.getUrl();
 
+        if (!method || !url) {
+            response.send('Request method or url cannot be found.', HttpStatus.BAD_REQUEST);
+            return;
+        }
+
         try {
             // 查找路由（未找到则返回404状态）
-            const route = Router.findRoute(method, url);
+            const router = new Router(request, response);
+            const route = router.getRoute();
             if (!route) {
                 response.send(`Route not found: ${url}`, HttpStatus.NOT_FOUND);
                 return;
             }
 
-            // 执行路由控制器方法
-            const proxyHandle = this.createProxyHandle(request, response, route);
-            let result = await proxyHandle();
+            // 没有控制器的路由作为静态资源处理
+            if (!route.handle) {
+                const encoding = request.getHeader('accept-encoding') || '';
+                response.pipe(url, encoding.includes('gzip'));
+                return;
+            }
+
+            // 代理执行路由控制器方法
+            const result = await router.execute();
 
             // 如果已经在控制器中发送响应不作处理
             if (response.isHeadersSent()) {
                 return;
             }
 
-            // 如果没有返回值返回204状态
+            //  如果没有返回值返回204状态
             if (result === undefined) {
                 response.send(result, HttpStatus.NO_CONTENT);
-            } else {
-                response.send(result);
+                return;
             }
+
+            // 如果存在模板装饰器则渲染模板
+            if (route.template) {
+                const engine = this.container.getTemplateEngine();
+                if (!engine) {
+                    response.send('Template engine has not been configured.', HttpStatus.INTERNAL_SERVER_ERROR);
+                    return;
+                }
+                response.send(engine.render(route.template, result));
+            }
+
+            // 返回控制器执行结果
+            response.send(result);
+
         } catch (e) {
             console.error('\x1b[31m[ERROR]\x1b[0m', method, url, e.stack || e)
             response.send(e.message || e.stack || e, e.status || HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    /**
-     * 解析参数装饰器并代理控制器方法
-     * @param request
-     * @param response
-     * @param route
-     * @returns
-     */
-    private createProxyHandle(request: HttpRequest, response: HttpResponse, route: Route) {
-        const handle = route.controller[route.handle]
-
-        // 返回代理后的方法
-        return async () => {
-            const args = Array.from(arguments);
-
-            // 遍历带有装饰器的参数重新赋值
-            for (let arg of route.arguments) {
-                switch (arg.type) {
-                    case PARAM_REQUEST: args[arg.index] = await this.getRequest(request, route, arg.field); break;
-                    case PARAM_RESPONSE: args[arg.index] = response; break;
-                    default: break;
-                }
-            }
-            return await handle.apply(route.controller, args);
-        }
-    }
-
-    /**
-     * 根据参数装饰器的 field 获取对应数据
-     * @param request
-     * @param route
-     * @param field
-     * @returns
-     */
-    private async getRequest(request: HttpRequest, route: Route, field: string) {
-        if (!field) return request;
-
-        switch (field.toUpperCase()) {
-            case REQUEST_FIELD_METHOD: return request.getMethod();
-            case REQUEST_FIELD_URL: return request.getUrl();
-            case REQUEST_FIELD_HEADERS: return request.getHeaders();
-            case REQUEST_FIELD_COOKIES: return request.getCookies();
-            case REQUEST_FIELD_BODY: return await request.getBody();
-            case REQUEST_FIELD_PARAM: return route.param;
-            case REQUEST_FIELD_QUERY: return route.query;
-            default: return request;
         }
     }
 

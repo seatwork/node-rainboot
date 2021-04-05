@@ -1,7 +1,7 @@
 {
     "name": "micro-flare",
-    "version": "1.0.6",
-    "description": "Independent HTTP microserver based on typescript and decorators.",
+    "version": "1.0.7",
+    "description": "Lightweight restful framework based on typescript and decorators.",
     "license": "MIT",
     "author": "Ai Chen",
     "homepage": "https://github.com/seatwork",
@@ -22,9 +22,7 @@
         "decorator",
         "micro-server",
         "http-server",
-        "static-server",
         "serverless",
-        "template-engine",
         "restful-api"
     ]
 }

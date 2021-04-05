@@ -12,7 +12,7 @@ export class HttpError extends Error {
      * @param message 错误信息
      * @param status HTTP 状态码（可选，400-511）
      */
-    constructor(message: string, status?: number) {
+    public constructor(message: string, status?: number) {
         if (!status || status < 400 || status > 511) {
             status = HttpStatus.INTERNAL_SERVER_ERROR;
         }

@@ -11,7 +11,7 @@ export class Strings {
      * @param str 
      * @returns 
      */
-    static capitalizeFirstChar(str: string) {
+    public static capitalizeFirstChar(str: string) {
         return str.toLowerCase().replace(/^\S/, s => s.toUpperCase());
     }
 
@@ -20,7 +20,7 @@ export class Strings {
      * @param str 
      * @returns 
      */
-    static isIpAddress(str: string) {
+    public static isIpAddress(str: string) {
         return this.IP_V4.test(str) || this.IP_V6.test(str)
     }
 

@@ -7,16 +7,35 @@ import { parse } from 'querystring';
 export class HttpRequest {
 
     private request;
+    private attributes = new Map<string, any>(); // 自定义属性
 
-    constructor(request: Http.IncomingMessage) {
+    public constructor(request: Http.IncomingMessage) {
         this.request = request;
+    }
+
+    /**
+     * 设置自定义属性
+     * @param key 
+     * @param value 
+     */
+    public setAttribute(key: string, value: any) {
+        this.attributes.set(key, value);
+    }
+
+    /**
+     * 获取自定义属性
+     * @param key 
+     * @returns 
+     */
+    public getAttribute(key: string) {
+        return this.attributes.get(key);
     }
 
     /**
      * 获取请求方法
      * @returns 
      */
-    getMethod() {
+    public getMethod() {
         return this.request.method;
     }
 
@@ -24,7 +43,7 @@ export class HttpRequest {
      * 获取请求路径
      * @returns 
      */
-    getUrl() {
+    public getUrl() {
         return this.request.url;
     }
 
@@ -32,7 +51,7 @@ export class HttpRequest {
      * 获取请求头
      * @returns 
      */
-    getHeaders() {
+    public getHeaders() {
         return this.request.headers;
     }
 
@@ -41,7 +60,7 @@ export class HttpRequest {
      * @param key 
      * @returns 
      */
-    getHeader(key: string) {
+    public getHeader(key: string) {
         return this.request.headers[key];
     }
 
@@ -49,7 +68,7 @@ export class HttpRequest {
      * 获取请求体
      * @returns 
      */
-    getBody() {
+    public getBody() {
         return this.parseRawBody();
     }
 
@@ -57,7 +76,7 @@ export class HttpRequest {
      * 获取 Cookies
      * @returns 
      */
-    getCookies() {
+    public getCookies() {
         const cookies: any = {};
         let cookie = this.getHeader('cookie') as string;
         if (cookie) {
