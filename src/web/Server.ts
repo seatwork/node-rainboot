@@ -1,9 +1,10 @@
 import Http from 'http';
-import { url, version } from '../../package.json';
+import { name, url, version } from '../../package.json';
 import { PARAM_REQUEST, PARAM_RESPONSE, REQUEST_FIELD_BODY, REQUEST_FIELD_COOKIES, REQUEST_FIELD_HEADERS, REQUEST_FIELD_METHOD, REQUEST_FIELD_PARAM, REQUEST_FIELD_QUERY, REQUEST_FIELD_URL } from '../Constant';
 import { HttpRequest } from '../http/HttpRequest';
 import { HttpResponse } from '../http/HttpResponse';
 import { HttpStatus } from '../http/HttpStatus';
+import { Strings } from '../util/Strings';
 import { Route } from './Route';
 import { Router } from './Router';
 
@@ -27,7 +28,7 @@ export class Server {
      */
     run(port: number) {
         this.server.listen(port, () => {
-            console.log(`\x1b[90mMicro-spark ^${version} - ${url}\x1b[0m`)
+            console.log(`\x1b[90m${Strings.capitalizeFirstChar(name)} ^${version} - ${url}\x1b[0m`)
             console.log(`> \x1b[32mReady!\x1b[0m Running at \x1b[4m\x1b[36mhttp://localhost:${port}\x1b[0m`)
         })
     }
