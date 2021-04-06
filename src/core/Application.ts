@@ -52,7 +52,7 @@ export class Application {
      */
     public run(port: number = 3000) {
         if (this.container.getRoutes().length === 0) {
-            console.warn('Route has not been configured.');
+            console.warn('\x1b[33m[WARNING]', 'Route has not been configured.', '\x1b[0m');
         }
         new HttpServer().run(port);
     }

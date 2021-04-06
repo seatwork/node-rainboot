@@ -101,7 +101,7 @@ export class HttpServer {
             response.send(result);
 
         } catch (e) {
-            console.error('\x1b[31m[ERROR]\x1b[0m', method, url, e.stack || e)
+            console.error('\x1b[31m[ERROR]', method, url, e.stack || e, '\x1b[0m');
             response.send(e.message || e.stack || e, e.status || HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
