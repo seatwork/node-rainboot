@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import { Server } from '../web/Server';
+import { Middleware, TemplateEngine } from '../def/Plugin';
+import { HttpServer } from '../http/HttpServer';
 import { Container } from './Container';
-import { Middleware, TemplateEngine } from './Plugin';
 
 /**
  * 应用程序启动类
@@ -54,7 +54,7 @@ export class Application {
         if (this.container.getRoutes().length === 0) {
             console.warn('Route has not been configured.');
         }
-        new Server().run(port);
+        new HttpServer().run(port);
     }
 
     /**

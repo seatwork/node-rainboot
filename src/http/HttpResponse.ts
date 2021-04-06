@@ -2,7 +2,7 @@ import fs from 'fs';
 import Http from 'http';
 import path from 'path';
 import zlib from 'zlib';
-import { MimeType } from '../web/MimeType';
+import { MimeType } from '../def/MimeType';
 import { HttpStatus } from './HttpStatus';
 
 /**

@@ -16,4 +16,14 @@ export class Assert {
         if (!expression) throw new HttpError(message, status);
     }
 
+    /**
+     * 非空断言
+     * @param expression 
+     * @param message 
+     * @param status 
+     */
+    public static notNull(expression: boolean, message: string, status?: number) {
+        if (!expression) throw new HttpError(message, status);
+    }
+
 }

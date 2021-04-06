@@ -1,16 +1,16 @@
 import Http from 'http';
 import { Container } from '../core/Container';
-import { HttpRequest } from '../http/HttpRequest';
-import { HttpResponse } from '../http/HttpResponse';
-import { HttpStatus } from '../http/HttpStatus';
+import { Router } from '../core/Router';
 import { name, url, version } from '../package.json';
 import { Strings } from '../util/Strings';
-import { Router } from './Router';
+import { HttpRequest } from './HttpRequest';
+import { HttpResponse } from './HttpResponse';
+import { HttpStatus } from './HttpStatus';
 
 /**
  * 应用服务器
  */
-export class Server {
+export class HttpServer {
 
     private container = Container.getInstance();
     private server: Http.Server;

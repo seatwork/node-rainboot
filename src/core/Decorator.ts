@@ -1,7 +1,7 @@
 import path from "path";
 import 'reflect-metadata';
-import { Route } from "../web/Route";
-import { METADATA_ARGS, METADATA_ROUTES, METHOD_DELETE, METHOD_GET, METHOD_HEAD, METHOD_OPTIONS, METHOD_PATCH, METHOD_POST, METHOD_PUT, PARAM_REQUEST, PARAM_RESPONSE } from "./Constant";
+import { METADATA_ARGS, METADATA_ROUTES, METHOD_DELETE, METHOD_GET, METHOD_HEAD, METHOD_OPTIONS, METHOD_PATCH, METHOD_POST, METHOD_PUT, PARAM_REQUEST, PARAM_RESPONSE } from "../def/Constant";
+import { Route } from "../def/Route";
 import { Container } from "./Container";
 
 const container = Container.getInstance();

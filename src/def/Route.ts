@@ -1,5 +1,5 @@
 /**
- * 路由实体类
+ * 路由对象接口
  */
 export interface Route {
 

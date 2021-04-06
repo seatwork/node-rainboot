@@ -1,6 +1,6 @@
 {
-    "name": "micro-flare",
-    "version": "1.0.7",
+    "name": "@scape/dash",
+    "version": "0.0.1",
     "description": "Lightweight restful framework based on typescript and decorators.",
     "license": "MIT",
     "author": "Ai Chen",

@@ -1,5 +1,5 @@
-import { Route } from '../web/Route';
-import { Middleware, TemplateEngine } from './Plugin';
+import { Middleware, TemplateEngine } from '../def/Plugin';
+import { Route } from '../def/Route';
 
 /**
  * 公共容器（单例）

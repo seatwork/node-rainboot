@@ -1,8 +1,8 @@
-import { PARAM_REQUEST, PARAM_RESPONSE, REQUEST_FIELD_BODY, REQUEST_FIELD_COOKIES, REQUEST_FIELD_HEADERS, REQUEST_FIELD_METHOD, REQUEST_FIELD_PARAM, REQUEST_FIELD_QUERY, REQUEST_FIELD_URL } from "../core/Constant";
-import { Container } from "../core/Container";
+import { PARAM_REQUEST, PARAM_RESPONSE, REQUEST_FIELD_BODY, REQUEST_FIELD_COOKIES, REQUEST_FIELD_HEADERS, REQUEST_FIELD_METHOD, REQUEST_FIELD_PARAM, REQUEST_FIELD_QUERY, REQUEST_FIELD_URL } from "../def/Constant";
+import { Route } from "../def/Route";
 import { HttpRequest } from "../http/HttpRequest";
 import { HttpResponse } from "../http/HttpResponse";
-import { Route } from "./Route";
+import { Container } from "./Container";
 
 /**
  * 路由管理
@@ -10,7 +10,7 @@ import { Route } from "./Route";
 export class Router {
 
     private static readonly PATH_REGEX: string = '[a-zA-Z0-9_@\\-\\.]+';
-    private container = Container.getInstance();
+
     private request: HttpRequest;
     private response: HttpResponse;
     private route?: Route;
@@ -103,7 +103,7 @@ export class Router {
         const url = this.request.getUrl();
         if (!method || !url) return
 
-        const routes = this.container.getRoutes();
+        const routes = Container.getInstance().getRoutes();
         for (let route of routes) {
             if (!route.path) continue;
             if (route.method !== method) continue;
