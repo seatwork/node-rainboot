@@ -12,7 +12,8 @@
         "build": "tsc && cp -f package.json README.md lib"
     },
     "devDependencies": {
-        "@types/node": "^14.14.37"
+        "@types/node": "^14.14.37",
+        "typescript": "^4.2.3"
     },
     "dependencies": {
         "reflect-metadata": "^0.1.13"
