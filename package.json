@@ -1,12 +1,12 @@
 {
-    "name": "@scape/dash",
+    "name": "rainboot",
     "version": "0.0.1",
     "description": "Lightweight restful framework based on typescript and decorators.",
     "license": "MIT",
     "author": "Ai Chen",
     "homepage": "https://github.com/seatwork",
-    "repository": "https://github.com/seatwork/micro-flare.git",
-    "url": "https://github.com/seatwork/micro-flare",
+    "repository": "https://github.com/seatwork/rainboot.git",
+    "url": "https://github.com/seatwork/rainboot",
     "main": "index.js",
     "scripts": {
         "build": "tsc && cp -f package.json README.md lib"
