@@ -95,6 +95,7 @@ export class HttpServer {
                     return;
                 }
                 response.send(engine.render(route.template, result));
+                return;
             }
 
             // 返回控制器执行结果
