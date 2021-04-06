@@ -82,3 +82,11 @@ export class TestMiddleware implements Middleware {
 
 }
 ```
+
+## Deployment & Publish
+```
+npm i
+npm run build
+cd lib
+npm publish
+```
