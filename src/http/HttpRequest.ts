@@ -8,7 +8,6 @@ export class HttpRequest {
 
     private request;
     private attributes = new Map<string, any>(); // 自定义属性
-    private isForwarded = false;
 
     public constructor(request: Http.IncomingMessage) {
         this.request = request;
@@ -99,21 +98,12 @@ export class HttpRequest {
     public forward(url: string, attrs?: any) {
         if (this.request.url !== url) {
             this.request.url = url;
-            this.isForwarded = true;
 
             // 附加属性
             if (attrs) Object.keys(attrs).forEach(key => {
                 this.setAttribute(key, attrs[key]);
             })
         }
-    }
-
-    /**
-     * 是否存在跳转
-     * @returns 
-     */
-    public hasForwarded() {
-        return this.isForwarded;
     }
 
     /**

@@ -83,7 +83,7 @@ export class HttpServer {
             }
 
             // 如果存在内部跳转则按新路由再次执行
-            if (request.hasForwarded()) {
+            if (request.getUrl() !== url) {
                 this.process(request, response);
                 return;
             }
