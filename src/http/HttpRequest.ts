@@ -160,7 +160,7 @@ export class HttpRequest {
             this.request.url = url;
 
             // 附加属性
-            if (attrs) Object.keys(attrs).forEach(key => {
+            if (attrs) Object.getOwnPropertyNames(attrs).forEach(key => {
                 this.setAttribute(key, attrs[key]);
             })
         }
