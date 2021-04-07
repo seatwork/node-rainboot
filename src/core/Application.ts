@@ -13,10 +13,10 @@ export class Application {
 
     /**
      * 设置控制器目录（并扫描控制器）
-     * @param dir 
+     * @param dir
      */
     public setControllerPath(dir: string) {
-        this.scanControllers(path.join(process.cwd(), dir));
+        this.scanControllers(path.resolve(dir));
     }
 
     /**
@@ -32,7 +32,7 @@ export class Application {
 
     /**
      * 设置模板引擎
-     * @param engine 
+     * @param engine
      */
     public setTemplateEngine(engine: TemplateEngine) {
         this.container.setTemplateEngine(engine);
@@ -40,7 +40,7 @@ export class Application {
 
     /**
      * 添加中间件
-     * @param middleware 
+     * @param middleware
      */
     public addMiddleware(middleware: Middleware) {
         this.container.addMiddleware(middleware);
@@ -59,7 +59,7 @@ export class Application {
 
     /**
      * 扫描控制器目录以触发装饰器
-     * @param dir 
+     * @param dir
      */
     private scanControllers(dir: string) {
         const files = fs.readdirSync(dir);

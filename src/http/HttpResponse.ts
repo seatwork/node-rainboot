@@ -18,7 +18,7 @@ export class HttpResponse {
 
     /**
      * 发送响应
-     * @param data 响应内容 
+     * @param data 响应内容
      * @param status 响应状态码（默认200）
      */
     public send(data: any, status?: number) {
@@ -42,7 +42,8 @@ export class HttpResponse {
      * @param gzip 是否压缩
      */
     public pipe(url: string, gzip: boolean) {
-        const filename = path.join(process.cwd(), url);
+        // 将虚拟相对路径去掉开头斜杠转换为绝对路径
+        const filename = path.resolve(url.replace(/^\/+/, ''));
         const extname = path.extname(filename).substr(1).toUpperCase();
 
         // 资源不存在
@@ -75,7 +76,7 @@ export class HttpResponse {
 
     /**
      * 是否已发送响应头
-     * @returns 
+     * @returns
      */
     public isHeadersSent(): boolean {
         return this.response.headersSent;
@@ -83,8 +84,8 @@ export class HttpResponse {
 
     /**
      * 设置响应头
-     * @param key 
-     * @param value 
+     * @param key
+     * @param value
      */
     public setHeader(key: string, value: string) {
         this.response.setHeader(key, value);
@@ -92,9 +93,9 @@ export class HttpResponse {
 
     /**
      * 设置 Cookie
-     * @param key 
-     * @param value 
-     * @param options 
+     * @param key
+     * @param value
+     * @param options
      */
     public setCookie(key: string, value: string, options: any = {}) {
         const cookies = [`${key}=${value}`];
@@ -112,8 +113,8 @@ export class HttpResponse {
 
     /**
      * 重定向（302，303，307为临时重定向，301，308为永久重定向，默认301）
-     * @param url 
-     * @param status 
+     * @param url
+     * @param status
      */
     public redirect(url: string, status: 301 | 302 | 303 | 307 | 308 = 301) {
         this.response.writeHead(status, { Location: url })
