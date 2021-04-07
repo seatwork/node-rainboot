@@ -32,8 +32,8 @@ export class TestController {
         @Request('headers') headers: any,
         @Request('cookies') request: any,
         @Request('body') body: any,
-        @Request('param') param: any,
-        @Request('query') query: any,
+        @Request('params') params: any,
+        @Request('queries') queries: any,
         @Response() res: any) {
 
         return {

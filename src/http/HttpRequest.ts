@@ -7,10 +7,62 @@ import { parse } from 'querystring';
 export class HttpRequest {
 
     private request;
-    private attributes = new Map<string, any>(); // 自定义属性
+    private parameters: any = {}; // 路由路径附带的参数
+    private queries: any = {}; // 查询字符串参数
+    private attributes: any = {}; // 自定义属性
 
     public constructor(request: Http.IncomingMessage) {
         this.request = request;
+    }
+
+    /**
+     * 设置请求参数
+     * @param params 
+     */
+    public setParameters(params: {}) {
+        this.parameters = params;
+    }
+
+    /**
+     * 获取请求参数
+     * @param key 
+     * @returns 
+     */
+    public getParameter(key: string) {
+        return this.parameters[key];
+    }
+
+    /**
+     * 获取所有请求参数
+     * @returns 
+     */
+    public getParameters() {
+        return this.parameters;
+    }
+
+    /**
+     * 设置查询参数
+     * @param query 
+     */
+    public setQueries(queries: {}) {
+        this.queries = queries;
+    }
+
+    /**
+     * 获取查询参数
+     * @param key 
+     * @returns 
+     */
+    public getQuery(key: string) {
+        return this.queries[key];
+    }
+
+    /**
+     * 获取所有查询参数
+     * @returns 
+     */
+    public getQueries() {
+        return this.queries;
     }
 
     /**
@@ -19,7 +71,7 @@ export class HttpRequest {
      * @param value 
      */
     public setAttribute(key: string, value: any) {
-        this.attributes.set(key, value);
+        this.attributes[key] = value;
     }
 
     /**
@@ -28,7 +80,15 @@ export class HttpRequest {
      * @returns 
      */
     public getAttribute(key: string) {
-        return this.attributes.get(key);
+        return this.attributes[key];
+    }
+
+    /**
+     * 获取所有自定义属性
+     * @returns 
+     */
+    public getAttributes() {
+        return this.attributes;
     }
 
     /**

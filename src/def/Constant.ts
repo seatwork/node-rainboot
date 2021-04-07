@@ -17,5 +17,5 @@ export const REQUEST_FIELD_URL = 'URL';
 export const REQUEST_FIELD_HEADERS = 'HEADERS';
 export const REQUEST_FIELD_COOKIES = 'COOKIES';
 export const REQUEST_FIELD_BODY = 'BODY';
-export const REQUEST_FIELD_PARAM = 'PARAM';
-export const REQUEST_FIELD_QUERY = 'QUERY';
+export const REQUEST_FIELD_PARAMS = 'PARAMS';
+export const REQUEST_FIELD_QUERIES = 'QUERIES';

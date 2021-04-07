@@ -1,4 +1,4 @@
-import { PARAM_REQUEST, PARAM_RESPONSE, REQUEST_FIELD_BODY, REQUEST_FIELD_COOKIES, REQUEST_FIELD_HEADERS, REQUEST_FIELD_METHOD, REQUEST_FIELD_PARAM, REQUEST_FIELD_QUERY, REQUEST_FIELD_URL } from "../def/Constant";
+import { PARAM_REQUEST, PARAM_RESPONSE, REQUEST_FIELD_BODY, REQUEST_FIELD_COOKIES, REQUEST_FIELD_HEADERS, REQUEST_FIELD_METHOD, REQUEST_FIELD_PARAMS, REQUEST_FIELD_QUERIES, REQUEST_FIELD_URL } from "../def/Constant";
 import { Route } from "../def/Route";
 import { HttpRequest } from "../http/HttpRequest";
 import { HttpResponse } from "../http/HttpResponse";
@@ -86,8 +86,8 @@ export class Router {
             case REQUEST_FIELD_HEADERS: return this.request.getHeaders();
             case REQUEST_FIELD_COOKIES: return this.request.getCookies();
             case REQUEST_FIELD_BODY: return await this.request.getBody();
-            case REQUEST_FIELD_PARAM: return this.route.param;
-            case REQUEST_FIELD_QUERY: return this.route.query;
+            case REQUEST_FIELD_PARAMS: return this.request.getParameters();
+            case REQUEST_FIELD_QUERIES: return this.request.getQueries();
             default: return this.request;
         }
     }
@@ -112,11 +112,11 @@ export class Router {
             const parsedUrl = new URL(url, 'http://localhost');
             const pattern = route.path.replace(new RegExp(':(' + Router.PATH_REGEX + ')', 'g'), '(?<$1>' + Router.PATH_REGEX + ')')
             const result = parsedUrl.pathname.match('^' + pattern + '$')
-            const param = result ? result.groups || Array.from(result).slice(1) : null
+            const params = result ? result.groups || Array.from(result).slice(1) : null
 
-            if (param) {
-                route.param = param;
-                route.query = parsedUrl.searchParams;
+            if (params) {
+                this.request.setParameters(params);
+                this.request.setQueries(parsedUrl.searchParams);
                 return route;
             }
         }
