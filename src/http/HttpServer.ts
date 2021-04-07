@@ -19,7 +19,18 @@ export class HttpServer {
      * 创建应用服务器
      */
     public constructor() {
-        this.server = Http.createServer((req, res) => this.handleRequest(req, res));
+        this.server = Http.createServer((req, res) => {
+            // 封装请求和响应
+            const request = new HttpRequest(req);
+            const response = new HttpResponse(res);
+
+            // 遍历执行中间件
+            for (const middleware of this.container.getMiddlewares()) {
+                middleware.perform(request, response);
+            }
+            // 处理请求
+            this.process(request, response);
+        });
     }
 
     /**
@@ -39,19 +50,9 @@ export class HttpServer {
      * @param response
      * @returns
      */
-    private async handleRequest(req: Http.IncomingMessage, res: Http.ServerResponse) {
-        // 封装请求和响应
-        const request = new HttpRequest(req);
-        const response = new HttpResponse(res);
-
-        // 遍历执行中间件
-        for (const middleware of this.container.getMiddlewares()) {
-            middleware.perform(request, response);
-        }
-
+    private async process(request: HttpRequest, response: HttpResponse) {
         const method = request.getMethod();
         const url = request.getUrl();
-
         if (!method || !url) {
             response.send('Request method or url cannot be found.', HttpStatus.BAD_REQUEST);
             return;
@@ -78,6 +79,12 @@ export class HttpServer {
 
             // 如果已经在控制器中发送响应不作处理
             if (response.isHeadersSent()) {
+                return;
+            }
+
+            // 如果存在内部跳转则按新路由再次执行
+            if (request.hasForwarded()) {
+                this.process(request, response);
                 return;
             }
 
