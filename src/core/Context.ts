@@ -1,19 +1,48 @@
-import Http from 'http';
+import { IncomingMessage, ServerResponse } from 'http';
 import { parse } from 'querystring';
+import { Stream } from 'stream';
+import { HttpStatus } from '../def/Constant';
+import { Route } from '../def/Route';
 
 /**
- * Http.IncomingMessage 封装
+ * 应用上下文
  */
-export class HttpRequest {
+export class Context {
 
-    private request;
-    private parameters: any = {}; // 路由路径附带的参数
+    private request: IncomingMessage;
+    private response: ServerResponse;
+    private route?: Route;
+
     private queries: any = {}; // 查询字符串参数
+    private parameters: any = {}; // 路由路径参数
     private attributes: any = {}; // 自定义属性
 
-    public constructor(request: Http.IncomingMessage) {
+    public constructor(request: IncomingMessage, response: ServerResponse) {
         this.request = request;
+        this.response = response;
     }
+
+    public getRequest() {
+        return this.request;
+    }
+
+    public getResponse() {
+        return this.response;
+    }
+
+    public getRoute() {
+        return this.route;
+    }
+
+    public setRoute(route: Route) {
+        this.route = route;
+        this.setParameters(route.params);
+        this.setQueries(route.queries);
+    }
+
+    /** ---------------------------------------------------
+     * 请求扩展
+     * ---------------------------------------------------*/
 
     /**
      * 设置请求参数
@@ -108,7 +137,7 @@ export class HttpRequest {
     }
 
     /**
-     * 获取请求头
+     * 获取所有请求头
      * @returns 
      */
     public getHeaders() {
@@ -151,7 +180,7 @@ export class HttpRequest {
     }
 
     /**
-     * 内部跳转执行另一个路由
+     * 内部跳转到另一个路由
      * @param url 
      * @param attrs 
      */
@@ -165,6 +194,92 @@ export class HttpRequest {
             })
         }
     }
+
+    /** ---------------------------------------------------
+     * 响应扩展
+     * ---------------------------------------------------*/
+
+    /**
+     * 发送响应
+     * @param data 响应内容
+     * @param status 响应状态码（默认200）
+     */
+    public send(data: any, status?: number) {
+        // 如果状态码超出范围
+        this.response.statusCode = (!status || status < 200 || status > 511)
+            ? HttpStatus.SUCCESS : status;
+
+        // 如果已经发送响应不作任何处理
+        if (this.isHeadersSent()) {
+            return;
+        }
+        // 如果是空数据
+        if (data === undefined || data === null) {
+            return this.response.end();
+        }
+        // 如果是数据流通过管道输出
+        if (data instanceof Stream) {
+            return data.pipe(this.response);
+        }
+        // 标准响应仅支持 String/Buffer 类型
+        if (typeof data === 'string' || Buffer.isBuffer(data)) {
+            return this.response.end(data);
+        }
+        // 其余类型数据 Json 序列化输出
+        this.setHeader('Content-Type', 'application/json; charset=utf-8')
+        this.response.end(JSON.stringify(data));
+    }
+
+    /**
+     * 是否已发送响应头
+     * @returns
+     */
+    public isHeadersSent(): boolean {
+        return this.response.headersSent;
+    }
+
+    /**
+     * 设置响应头
+     * @param key
+     * @param value
+     */
+    public setHeader(key: string, value: string) {
+        this.response.setHeader(key, value);
+    }
+
+    /**
+     * 设置 Cookie
+     * @param key
+     * @param value
+     * @param options
+     */
+    public setCookie(key: string, value: string, options: any = {}) {
+        const cookies = [`${key}=${value}`];
+        if (options.domain) {
+            cookies.push(`domain=${options.domain}`)
+        }
+        if (options.maxAge) {
+            cookies.push(`max-age=${options.maxAge}`)
+        }
+        if (options.httpOnly) {
+            cookies.push(`httpOnly=true`)
+        }
+        this.setHeader('Set-Cookie', cookies.join('; '));
+    }
+
+    /**
+     * 重定向（302，303，307为临时重定向，301，308为永久重定向，默认301）
+     * @param url
+     * @param status
+     */
+    public redirect(url: string, status: 301 | 302 | 303 | 307 | 308 = 301) {
+        this.response.writeHead(status, { Location: url });
+        this.response.end();
+    }
+
+    /** ---------------------------------------------------
+     * 私有方法
+     * ---------------------------------------------------*/
 
     /**
      * 解析请求体

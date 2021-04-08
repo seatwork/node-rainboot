@@ -1,8 +1,4 @@
-import { PARAM_REQUEST, PARAM_RESPONSE, REQUEST_FIELD_BODY, REQUEST_FIELD_COOKIES, REQUEST_FIELD_HEADERS, REQUEST_FIELD_METHOD, REQUEST_FIELD_PARAMS, REQUEST_FIELD_QUERIES, REQUEST_FIELD_URL } from "../def/Constant";
 import { Route } from "../def/Route";
-import { HttpRequest } from "../http/HttpRequest";
-import { HttpResponse } from "../http/HttpResponse";
-import { Container } from "./Container";
 
 /**
  * 路由管理
@@ -10,113 +6,49 @@ import { Container } from "./Container";
 export class Router {
 
     private static readonly PATH_REGEX: string = '[a-zA-Z0-9_@\\-\\.]+';
-
-    private request: HttpRequest;
-    private response: HttpResponse;
-    private route?: Route;
+    private routes: Route[] = []; // 路由容器
 
     /**
-     * 初始化数据
-     * @param request 
-     * @param response 
+     * 创建单例
      */
-    public constructor(request: HttpRequest, response: HttpResponse) {
-        this.request = request;
-        this.response = response;
-        this.route = this.findRoute();
-    }
+    private static singleton: Router;
+    private constructor() { }
 
-    /**
-     * 获取路由
-     * @returns 
-     */
-    public getRoute() {
-        return this.route;
-    }
-
-    /**
-     * 代理执行路由控制器方法
-     * @returns 
-     */
-    public async execute() {
-        const proxyHandle = this.createProxyHandle();
-        return await proxyHandle();
-    }
-
-    /**
-     * 解析参数装饰器并代理控制器方法
-     * @returns 
-     */
-    private createProxyHandle() {
-        // 返回代理后的方法
-        return async () => {
-            if (!this.route) throw new Error('Route not found.');
-            if (!this.route.handle) throw new Error('No method available in controller.');
-            const args = Array.from(arguments);
-
-            // 遍历带有装饰器的参数重新赋值
-            if (this.route.arguments) {
-                for (let arg of this.route.arguments) {
-                    switch (arg.type) {
-                        case PARAM_REQUEST: args[arg.index] = await this.getArgument(arg.field); break;
-                        case PARAM_RESPONSE: args[arg.index] = this.response; break;
-                        default: break;
-                    }
-                }
-            }
-
-            // 用新参数执行控制器方法
-            const handle = this.route.controller[this.route.handle]
-            return await handle.apply(this.route.controller, args);
+    public static getInstance() {
+        if (!Router.singleton) {
+            Router.singleton = new Router();
         }
+        return Router.singleton;
     }
 
     /**
-     * 根据参数装饰器的 field 获取对应数据
-     * @param field 
-     * @returns 
+     * 添加路由
+     * @param route 
      */
-    private async getArgument(field: string) {
-        if (!field) return this.request;
-        if (!this.route) throw new Error('Route not found.');
-
-        switch (field.toUpperCase()) {
-            case REQUEST_FIELD_METHOD: return this.request.getMethod();
-            case REQUEST_FIELD_URL: return this.request.getUrl();
-            case REQUEST_FIELD_HEADERS: return this.request.getHeaders();
-            case REQUEST_FIELD_COOKIES: return this.request.getCookies();
-            case REQUEST_FIELD_BODY: return await this.request.getBody();
-            case REQUEST_FIELD_PARAMS: return this.request.getParameters();
-            case REQUEST_FIELD_QUERIES: return this.request.getQueries();
-            default: return this.request;
-        }
+    public addRoute(route: Route) {
+        this.routes.push(route);
     }
 
     /**
      * 查找路由
      * @param method 请求方法
-     * @param url 请求路径
+     * @param path 请求路径
      * @returns 
      */
-    private findRoute() {
-        const method = this.request.getMethod();
-        const url = this.request.getUrl();
-        if (!method || !url) return
-
-        const routes = Container.getInstance().getRoutes();
-        for (let route of routes) {
+    public findRoute(method: string, path: string) {
+        for (let route of this.routes) {
             if (!route.path) continue;
             if (route.method !== method) continue;
 
             // 匹配路径中的正则表达式
-            const parsedUrl = new URL(url, 'http://localhost');
+            const url = new URL(path, 'http://localhost');
             const pattern = route.path.replace(new RegExp(':(' + Router.PATH_REGEX + ')', 'g'), '(?<$1>' + Router.PATH_REGEX + ')')
-            const result = parsedUrl.pathname.match('^' + pattern + '$')
+            const result = url.pathname.match('^' + pattern + '$')
             const params = result ? result.groups || Array.from(result).slice(1) : null
 
             if (params) {
-                this.request.setParameters(params);
-                this.request.setQueries(parsedUrl.searchParams);
+                route.params = params;
+                route.queries = url.searchParams;
                 return route;
             }
         }
