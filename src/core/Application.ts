@@ -57,10 +57,10 @@ export class Application {
      * @param port 默认端口 3000
      */
     public run(port: number = 3000) {
-        const server = Http.createServer((request: Http.IncomingMessage, response: Http.ServerResponse) => {
+        const server = Http.createServer(async (request: Http.IncomingMessage, response: Http.ServerResponse) => {
             const context = new Context(request, response);
             this.runMiddlewares(context);
-            this.handleRequest(context);
+            await this.handleRequest(context);
         });
 
         return server.listen(port, () => {
@@ -84,7 +84,7 @@ export class Application {
      * @param context
      * @returns
      */
-    private handleRequest(context: Context) {
+    private async handleRequest(context: Context) {
         const method = context.getMethod();
         const url = context.getUrl();
         if (!method || !url) {
@@ -109,11 +109,11 @@ export class Application {
             // 代理执行路由控制器方法（解析参数装饰器）
             context.setRoute(route);
             const proxyHandle = this.createProxyHandle(context);
-            const result = proxyHandle();
+            const result = await proxyHandle();
 
             // 如果存在内部跳转则按新路由再次执行
             if (context.getUrl() !== url) {
-                this.handleRequest(context);
+                await this.handleRequest(context);
                 return;
             }
 
@@ -140,7 +140,7 @@ export class Application {
      */
     private createProxyHandle(context: Context) {
         // 返回代理后的方法
-        return () => {
+        return async () => {
             const route = context.getRoute();
             if (!route) throw new Error('No route available in request.');
             if (!route.handle) throw new Error('No handle available in controller.');
@@ -161,7 +161,7 @@ export class Application {
 
             // 用新参数执行控制器方法
             const handle = route.controller[route.handle];
-            return handle.apply(route.controller, args);
+            return await handle.apply(route.controller, args);
         }
     }
 
