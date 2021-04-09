@@ -21,5 +21,5 @@ export interface TemplateEngine {
      * @param templateFile 模板文件路径
      * @param data 模板数据模型
      */
-    render(templateFile: string, data: {}): string;
+    render(templateFile: string, data: any): string;
 }

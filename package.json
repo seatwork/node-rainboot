@@ -1,15 +1,16 @@
 {
     "name": "rainboot",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "description": "Lightweight restful framework based on typescript and decorators.",
     "license": "MIT",
     "author": "Ai Chen",
     "homepage": "https://github.com/seatwork",
-    "repository": "https://github.com/seatwork/rainboot.git",
-    "url": "https://github.com/seatwork/rainboot",
+    "repository": "https://github.com/seatwork/node-rainboot.git",
+    "url": "https://github.com/seatwork/node-rainboot",
     "main": "index.js",
     "scripts": {
-        "build": "rm -rf lib && tsc && cp -f package.json README.md lib"
+        "build": "rm -rf lib && tsc && cp -f package.json README.md lib",
+        "test": "ts-node-dev --respawn test/index.ts"
     },
     "devDependencies": {
         "@types/node": "^14.14.37",

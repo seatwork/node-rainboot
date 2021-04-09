@@ -2,6 +2,7 @@ import { IncomingMessage, ServerResponse } from 'http';
 import { parse } from 'querystring';
 import { Stream } from 'stream';
 import { HttpStatus } from '../def/Constant';
+import { HttpError } from '../def/HttpError';
 import { Route } from '../def/Route';
 
 /**
@@ -11,172 +12,70 @@ export class Context {
 
     private request: IncomingMessage;
     private response: ServerResponse;
-    private route?: Route;
 
-    private queries: any = {}; // 查询字符串参数
-    private parameters: any = {}; // 路由路径参数
-    private attributes: any = {}; // 自定义属性
+    private _route?: Route;     // 路由对象
+    private _params: any = {};  // 路由路径参数
+    private _query: any = {};   // 查询字符串参数
+    private _error?: HttpError;     // 错误对象
 
+    /**
+     * 构造方法
+     * @param request 
+     * @param response 
+     */
     public constructor(request: IncomingMessage, response: ServerResponse) {
         this.request = request;
         this.response = response;
     }
 
-    public getRequest() {
-        return this.request;
-    }
-
-    public getResponse() {
-        return this.response;
-    }
-
-    public getRoute() {
-        return this.route;
-    }
-
-    public setRoute(route: Route) {
-        this.route = route;
-        this.setParameters(route.params);
-        this.setQueries(route.queries);
-    }
-
     /** ---------------------------------------------------
-     * 请求扩展
+     * 扩展请求方法
      * ---------------------------------------------------*/
 
+    public get route() { return this._route; }
+    public get params() { return this._params; }
+    public get query() { return this._query; }
+    public get method() { return this.request.method; }
+    public get url() { return this.request.url; }
+    public get headers() { return this.request.headers; }
+    public get body() { return this.parseRawBody(); }
+    public get error() { return this._error; }
+
     /**
-     * 设置请求参数
-     * @param params 
+     * 设置路由参数
+     * @param route 
      */
-    public setParameters(params: {}) {
-        this.parameters = params;
+    public setRoute(route: Route) {
+        this._route = route;
+        this._params = route.params;
+        this._query = route.query;
+        delete route.params;
+        delete route.query;
     }
 
     /**
-     * 获取请求参数
-     * @param key 
-     * @returns 
+     * 设置错误
+     * @param error 
      */
-    public getParameter(key: string) {
-        return this.parameters[key];
-    }
-
-    /**
-     * 获取所有请求参数
-     * @returns 
-     */
-    public getParameters() {
-        return this.parameters;
-    }
-
-    /**
-     * 设置查询参数
-     * @param query 
-     */
-    public setQueries(queries: {}) {
-        this.queries = queries;
-    }
-
-    /**
-     * 获取查询参数
-     * @param key 
-     * @returns 
-     */
-    public getQuery(key: string) {
-        return this.queries[key];
-    }
-
-    /**
-     * 获取所有查询参数
-     * @returns 
-     */
-    public getQueries() {
-        return this.queries;
-    }
-
-    /**
-     * 设置自定义属性
-     * @param key 
-     * @param value 
-     */
-    public setAttribute(key: string, value: any) {
-        this.attributes[key] = value;
-    }
-
-    /**
-     * 获取自定义属性
-     * @param key 
-     * @returns 
-     */
-    public getAttribute(key: string) {
-        return this.attributes[key];
-    }
-
-    /**
-     * 获取所有自定义属性
-     * @returns 
-     */
-    public getAttributes() {
-        return this.attributes;
-    }
-
-    /**
-     * 获取请求方法
-     * @returns 
-     */
-    public getMethod() {
-        return this.request.method;
-    }
-
-    /**
-     * 获取请求路径
-     * @returns 
-     */
-    public getUrl() {
-        return this.request.url;
-    }
-
-    /**
-     * 获取所有请求头
-     * @returns 
-     */
-    public getHeaders() {
-        return this.request.headers;
-    }
-
-    /**
-     * 获取指定请求头
-     * @param key 
-     * @returns 
-     */
-    public getHeader(key: string) {
-        return this.request.headers[key];
-    }
-
-    /**
-     * 获取请求体
-     * @returns 
-     */
-    public getBody() {
-        return this.parseRawBody();
+    public setError(error: HttpError) {
+        this._error = error;
     }
 
     /**
      * 获取 Cookies
-     * @returns 
      */
-    public getCookies() {
-        const cookies: any = {};
-        let cookie = this.getHeader('cookie') as string;
+    public get cookies() {
+        const _cookies: any = {};
+        let cookie = this.headers.cookie;
         if (cookie) {
             cookie.split(/;\s+/).forEach(c => {
                 const i = c.indexOf('=');
                 const k = c.substr(0, i);
                 const v = c.substr(i + 1);
-                cookies[k] = v;
+                _cookies[k] = v;
             })
         }
-        return cookies;
+        return _cookies;
     }
 
     /**
@@ -184,19 +83,12 @@ export class Context {
      * @param url 
      * @param attrs 
      */
-    public forward(url: string, attrs?: any) {
-        if (this.request.url !== url) {
-            this.request.url = url;
-
-            // 附加属性
-            if (attrs) Object.getOwnPropertyNames(attrs).forEach(key => {
-                this.setAttribute(key, attrs[key]);
-            })
-        }
+    public forward(url: string) {
+        this.request.url = url;
     }
 
     /** ---------------------------------------------------
-     * 响应扩展
+     * 扩展响应方法
      * ---------------------------------------------------*/
 
     /**
@@ -222,11 +114,15 @@ export class Context {
             return data.pipe(this.response);
         }
         // 标准响应仅支持 String/Buffer 类型
-        if (typeof data === 'string' || Buffer.isBuffer(data)) {
+        if (typeof data === 'string') {
+            this.setHeader('Content-Type', 'text/plain;charset=utf-8');
+            return this.response.end(data);
+        }
+        if (Buffer.isBuffer(data)) {
             return this.response.end(data);
         }
         // 其余类型数据 Json 序列化输出
-        this.setHeader('Content-Type', 'application/json; charset=utf-8')
+        this.setHeader('Content-Type', 'application/json;charset=utf-8')
         this.response.end(JSON.stringify(data));
     }
 
@@ -296,7 +192,7 @@ export class Context {
             });
             this.request.on('end', () => {
                 let data: any = Buffer.concat(buffer).toString('utf8');
-                const contentType = this.getHeader('content-type');
+                const contentType = this.headers['content-type'];
 
                 if (contentType) {
                     if (contentType.indexOf('application/x-www-form-urlencoded') >= 0) {

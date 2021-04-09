@@ -1,11 +1,30 @@
+// 版本信息
+export const enum App {
+    NAME = 'Rainboot',
+    VERSION = '0.1.2',
+    REPO = 'https://github.com/seatwork/rainboot',
+    ERROR_HANDLER = '/error'
+}
+
 // 元数据主键
-export enum Metadata {
+export const enum Metadata {
     ROUTES = 'ROUTES',
-    ARGUMENTS = 'ARGUMENTS',
+}
+
+// 请求方法主键
+export const enum Method {
+    REQUEST = 'REQUEST',
+    GET = 'GET',
+    POST = 'POST',
+    PUT = 'PUT',
+    DELETE = 'DELETE',
+    PATCH = 'PATCH',
+    HEAD = 'HEAD',
+    OPTIONS = 'OPTIONS',
 }
 
 // 装饰器主键
-export enum Decorator {
+export const enum Decorator {
     CONTEXT = 'CONTEXT',
     REQUEST = 'REQUEST',
     RESPONSE = 'RESPONSE',
@@ -20,7 +39,7 @@ export enum Decorator {
 }
 
 // 常用状态码
-export enum HttpStatus {
+export const enum HttpStatus {
     SUCCESS = 200,
     NO_CONTENT = 204,
 

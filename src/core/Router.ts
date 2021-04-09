@@ -1,3 +1,4 @@
+import { Method } from "../def/Constant";
 import { Route } from "../def/Route";
 
 /**
@@ -37,8 +38,8 @@ export class Router {
      */
     public findRoute(method: string, path: string) {
         for (let route of this.routes) {
-            if (!route.path) continue;
-            if (route.method !== method) continue;
+            if (route.path === undefined) continue;
+            if (route.method !== Method.REQUEST && route.method !== method) continue;
 
             // 匹配路径中的正则表达式
             const url = new URL(path, 'http://localhost');
@@ -48,10 +49,24 @@ export class Router {
 
             if (params) {
                 route.params = params;
-                route.queries = url.searchParams;
+                route.query = this.convertSearchParams(url.searchParams);
                 return route;
             }
         }
+    }
+
+    /**
+     * 将 URLSearchParams 转换为简单对象
+     * @param params 
+     * @returns 
+     */
+    private convertSearchParams(params: URLSearchParams) {
+        const entries = params.entries();
+        const result: any = {};
+        for (let entry of entries) {
+            result[entry[0]] = entry[1];
+        }
+        return result;
     }
 
 }

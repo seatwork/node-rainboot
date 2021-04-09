@@ -3,43 +3,89 @@ Rainboot is a simple, lightweight, independent restful framework based on Typesc
 
 ## Get started
 ```
-// index.ts
-import { Application } from "rainboot";
-import { ArtTemplateEngine } from "./plugin/ArtTemplateEngine";
-import { TestMiddleware } from "./plugin/TestMiddleware";
+npm i rainboot
+```
 
-const app = new Application()
-app.setStaticResourcePath('assets');
-app.setControllerPath('controllers');
-app.setTemplateEngine(new ArtTemplateEngine());
+## Create Entry
+```
+// index.ts
+import { Application } from 'rainboot/core/Application';
+import { TestMiddleware } from './TestMiddleware';
+import { TestTemplateEngine } from './TestTemplateEngine';
+
+const app = new Application();
+app.setStaticResourcePath('test/assets');
+app.setControllerPath('test/controller');
 app.addMiddleware(new TestMiddleware());
+app.setTemplateEngine(new TestTemplateEngine())
 app.run();
 ```
 
 ## Create Controller
 ```
 // TestController.ts
-import { Controller, Get, Request, Response, Template } from "rainboot/core/Decorator";
+import { Context } from "rainboot/core/Context";
+import { Controller, Get, Post, Request, Template } from "rainboot/core/Decorator";
+import { HttpError } from "rainboot/def/HttpError";
 
-@Controller('/test')
+@Controller()
 export class TestController {
 
-    @Get('/user/:id')
-    @Template('index') // Optional
-    public async getUser(
-
-        @Request() req: any,
-        @Request('headers') headers: any,
-        @Request('cookies') request: any,
-        @Request('body') body: any,
-        @Request('params') params: any,
-        @Request('queries') queries: any,
-        @Response() res: any) {
-
+    @Request('/:id/:name')
+    public testRequest(context: Context) {
         return {
-            name: 'Rainboot',
-            age: 23
+            method: context.method,
+            url: context.url,
+            params: context.params,
+            query: context.query,
+            route: context.route,
+            headers: context.headers,
+            cookies: context.cookies,
+            body: context.body,
+            error: context.error
         };
+    }
+
+    @Post('/post')
+    public async testPost(context: Context) {
+        console.log('body=', await context.body)
+        context.setHeader('Content-Type', 'text/plain')
+        return 'I am post back.';
+    }
+
+    @Get('/forward')
+    public testForward(context: Context) {
+        this.hello();
+        context.setCookie('token', '%cDa^Pc)2-Nmc');
+        context.forward('/1000/nacy');
+    }
+
+    @Get('/throw')
+    public testThrowError(context: Context) {
+        throw new HttpError('Test Throw Error', 403);
+    }
+
+    @Get('/error')
+    public testError(context: Context) {
+        if (1 == 1) throw new HttpError('This is error in error')
+        return {
+            status: context.error?.status,
+            message: context.error?.message,
+            stack: context.error?.stack
+        };
+    }
+
+    @Get('/template')
+    @Template('index')
+    public testTemplate(context: Context) {
+        return {
+            title: 'page title',
+            desc: 'page description'
+        }
+    }
+
+    private hello() {
+        console.log('---------- private call')
     }
 
 }
@@ -70,14 +116,13 @@ export class ArtTemplateEngine implements TemplateEngine {
 ## Implements Middleware
 ```
 // TestMiddleware.ts
-import { HttpRequest } from 'rainboot/http/HttpRequest';
-import { HttpResponse } from 'rainboot/http/HttpResponse';
+import { Context } from 'rainboot/core/Context';
+import { Middleware } from 'rainboot/def/Plugin';
 
 export class TestMiddleware implements Middleware {
 
-    // Override
-    public perform(request: HttpRequest, response: HttpResponse) {
-        // Todo
+    public perform(context: Context) {
+        context.setHeader('x-custome-header', 'test middleware');
     }
 
 }

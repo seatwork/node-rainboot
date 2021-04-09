@@ -2,9 +2,8 @@ import fs from 'fs';
 import Http from 'http';
 import path from 'path';
 import zlib from 'zlib';
-import { Decorator, HttpStatus, MimeType } from '../def/Constant';
+import { App, HttpStatus, Method, MimeType } from '../def/Constant';
 import { Middleware, TemplateEngine } from '../def/Plugin';
-import { name, url, version } from '../package.json';
 import { Context } from './Context';
 import { Router } from './Router';
 
@@ -64,7 +63,7 @@ export class Application {
         });
 
         return server.listen(port, () => {
-            console.log(`\x1b[90m${name} ^${version} - ${url}\x1b[0m`)
+            console.log(`\x1b[90m${App.NAME} ^${App.VERSION} - ${App.REPO}\x1b[0m`)
             console.log(`> \x1b[32mReady!\x1b[0m Running at \x1b[4m\x1b[36mhttp://localhost:${port}\x1b[0m`)
         });
     }
@@ -85,12 +84,8 @@ export class Application {
      * @returns
      */
     private async handleRequest(context: Context) {
-        const method = context.getMethod();
-        const url = context.getUrl();
-        if (!method || !url) {
-            context.send('Request method or url cannot be found.', HttpStatus.BAD_REQUEST);
-            return;
-        }
+        const method = context.method || Method.REQUEST;
+        const url = context.url || '/';
 
         try {
             // 查找路由（未找到则返回404状态）
@@ -106,13 +101,12 @@ export class Application {
                 return;
             }
 
-            // 代理执行路由控制器方法（解析参数装饰器）
+            // 执行路由控制器方法
             context.setRoute(route);
-            const proxyHandle = this.createProxyHandle(context);
-            const result = await proxyHandle();
+            const result = await route.controller[route.handle](context);
 
             // 如果存在内部跳转则按新路由再次执行
-            if (context.getUrl() !== url) {
+            if (context.url !== url) {
                 await this.handleRequest(context);
                 return;
             }
@@ -123,65 +117,23 @@ export class Application {
                     context.send('Template engine has not been configured.', HttpStatus.INTERNAL_SERVER_ERROR);
                     return;
                 }
-                context.send(this.templateEngine.render(route.template, result));
+                context.send(this.templateEngine.render(route.template, result), context.error?.status);
                 return;
             }
             // 返回控制器执行结果
-            context.send(result);
+            context.send(result, context.error?.status);
         } catch (e) {
-            console.error('\x1b[31m[ERROR]', method, url, e.stack || e, '\x1b[0m');
-            context.send(e.message || e.stack || e, e.status || HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+            e.status = e.status || HttpStatus.INTERNAL_SERVER_ERROR;
 
-    /**
-     * 解析参数装饰器并代理控制器方法
-     * @returns
-     */
-    private createProxyHandle(context: Context) {
-        // 返回代理后的方法
-        return async () => {
-            const route = context.getRoute();
-            if (!route) throw new Error('No route available in request.');
-            if (!route.handle) throw new Error('No handle available in controller.');
-
-            // 遍历带有装饰器的参数重新赋值
-            const args = Array.from(arguments);
-            if (route.arguments) {
-                for (let arg of route.arguments) {
-                    const i = arg.index;
-                    switch (arg.type) {
-                        case Decorator.RESPONSE: args[i] = context.getRequest(); break;
-                        case Decorator.RESPONSE: args[i] = context.getResponse(); break;
-                        case Decorator.CONTEXT: args[i] = this.getArgument(context, arg.field); break;
-                        default: break;
-                    }
-                }
+            // 如果存在全局错误控制
+            if (context.url !== App.ERROR_HANDLER && this.router.findRoute(method, App.ERROR_HANDLER)) {
+                context.forward(App.ERROR_HANDLER)
+                context.setError(e);
+                this.handleRequest(context);
+            } else {
+                console.error('\x1b[31m[ERROR]', method, url, e.stack || e, '\x1b[0m');
+                context.send(e.message || e.stack || e, e.status);
             }
-
-            // 用新参数执行控制器方法
-            const handle = route.controller[route.handle];
-            return await handle.apply(route.controller, args);
-        }
-    }
-
-    /**
-     * 根据参数装饰器的 field 获取对应数据
-     * @param field
-     * @returns
-     */
-    private getArgument(context: Context, field: string) {
-        if (!field) return context;
-
-        switch (field.toUpperCase()) {
-            case Decorator.REQUEST_METHOD: return context.getMethod();
-            case Decorator.REQUEST_URL: return context.getUrl();
-            case Decorator.REQUEST_HEADERS: return context.getHeaders();
-            case Decorator.REQUEST_COOKIES: return context.getCookies();
-            case Decorator.REQUEST_PARAMS: return context.getParameters();
-            case Decorator.REQUEST_QUERIES: return context.getQueries();
-            case Decorator.REQUEST_BODY: return context.getBody();
-            default: return context;
         }
     }
 
@@ -190,7 +142,7 @@ export class Application {
      * @param context
      */
     private handleStaticResource(context: Context) {
-        const url = context.getUrl();
+        const url = context.url;
         if (!url) return;
 
         // 将虚拟相对路径去掉开头斜杠转换为绝对路径
@@ -219,7 +171,7 @@ export class Application {
 
         // 读取文件通过管道输出
         const stream = fs.createReadStream(filename)
-        const encoding = context.getHeader('accept-encoding') || '';
+        const encoding = context.headers['accept-encoding'] || '';
 
         if (encoding.includes('gzip')) {
             context.setHeader('Content-Encoding', 'gzip');
