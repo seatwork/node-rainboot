@@ -114,11 +114,7 @@ export class Context {
             return data.pipe(this.response);
         }
         // 标准响应仅支持 String/Buffer 类型
-        if (typeof data === 'string') {
-            this.setHeader('Content-Type', 'text/plain;charset=utf-8');
-            return this.response.end(data);
-        }
-        if (Buffer.isBuffer(data)) {
+        if (typeof data === 'string' || Buffer.isBuffer(data)) {
             return this.response.end(data);
         }
         // 其余类型数据 Json 序列化输出
