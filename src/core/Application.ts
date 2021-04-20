@@ -58,7 +58,6 @@ export class Application {
     public run(port: number = 3000) {
         const server = Http.createServer(async (request: Http.IncomingMessage, response: Http.ServerResponse) => {
             const context = new Context(request, response);
-            this.runMiddlewares(context);
             await this.handleRequest(context);
         });
 
@@ -66,16 +65,6 @@ export class Application {
             console.log(`\x1b[90m${App.NAME} ^${App.VERSION} - ${App.REPO}\x1b[0m`)
             console.log(`> \x1b[32mReady!\x1b[0m Running at \x1b[4m\x1b[36mhttp://localhost:${port}\x1b[0m`)
         });
-    }
-
-    /**
-     * 遍历执行中间件
-     * @param context
-     */
-    private runMiddlewares(context: Context) {
-        for (const middleware of this.middlewares) {
-            middleware.perform(context);
-        }
     }
 
     /**
@@ -88,6 +77,11 @@ export class Application {
         const url = context.url || '/';
 
         try {
+            // 执行中间件
+            for (const middleware of this.middlewares) {
+                await middleware.perform(context);
+            }
+
             // 查找路由（未找到则返回404状态）
             const route = this.router.findRoute(method, url);
             if (!route) {
