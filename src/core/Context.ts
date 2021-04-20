@@ -16,7 +16,9 @@ export class Context {
     private _route?: Route;     // 路由对象
     private _params: any = {};  // 路由路径参数
     private _query: any = {};   // 查询字符串参数
-    private _error?: HttpError;     // 错误对象
+    private _error?: HttpError; // 错误对象
+
+    public locals: any = {};    // 自定义属性
 
     /**
      * 构造方法
