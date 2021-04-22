@@ -22,8 +22,8 @@ export class Context {
 
     /**
      * 构造方法
-     * @param request 
-     * @param response 
+     * @param request
+     * @param response
      */
     public constructor(request: IncomingMessage, response: ServerResponse) {
         this.request = request;
@@ -46,7 +46,7 @@ export class Context {
 
     /**
      * 设置路由参数
-     * @param route 
+     * @param route
      */
     public setRoute(route: Route) {
         this._route = route;
@@ -58,7 +58,7 @@ export class Context {
 
     /**
      * 设置错误
-     * @param error 
+     * @param error
      */
     public setError(error: HttpError) {
         this._error = error;
@@ -83,8 +83,8 @@ export class Context {
 
     /**
      * 内部跳转到另一个路由
-     * @param url 
-     * @param attrs 
+     * @param url
+     * @param attrs
      */
     public forward(url: string) {
         this.request.url = url;
@@ -95,14 +95,20 @@ export class Context {
      * ---------------------------------------------------*/
 
     /**
+     * 是否已发送响应头
+     * @returns
+     */
+    public isHeadersSent(): boolean {
+        return this.response.headersSent;
+    }
+
+    /**
      * 发送响应
      * @param data 响应内容
      * @param status 响应状态码（默认200）
      */
     public send(data: any, status?: number) {
-        // 如果状态码超出范围
-        this.response.statusCode = (!status || status < 200 || status > 511)
-            ? HttpStatus.SUCCESS : status;
+        this.setStatus(status);
 
         // 如果已经发送响应不作任何处理
         if (this.isHeadersSent()) {
@@ -126,20 +132,21 @@ export class Context {
     }
 
     /**
-     * 是否已发送响应头
-     * @returns
-     */
-    public isHeadersSent(): boolean {
-        return this.response.headersSent;
-    }
-
-    /**
      * 设置响应头
      * @param key
      * @param value
      */
     public setHeader(key: string, value: string) {
         this.response.setHeader(key, value);
+    }
+
+    /**
+     * 设置响应状态码
+     * @param status
+     */
+    public setStatus(status?: number) {
+        this.response.statusCode = (!status || status < 200 || status > 511)
+            ? HttpStatus.SUCCESS : status;
     }
 
     /**
@@ -178,7 +185,7 @@ export class Context {
 
     /**
      * 解析请求体
-     * @returns 
+     * @returns
      */
     private parseRawBody() {
         return new Promise((resolve, reject) => {
@@ -207,8 +214,8 @@ export class Context {
 
     /**
      * 尝试解析Json字符串（解析错误时返回原始内容）
-     * @param data 
-     * @returns 
+     * @param data
+     * @returns
      */
     private tryParseJson(data: string) {
         try {
