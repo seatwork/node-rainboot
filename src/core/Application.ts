@@ -105,6 +105,10 @@ export class Application {
                 return;
             }
 
+            // 设置响应时间
+            const ms = Date.now() - context.locals.time;
+            context.setHeader('X-Response-Time', `${ms}ms`);
+
             // 如果存在模板装饰器则渲染模板
             if (route.template) {
                 if (!this.templateEngine) {

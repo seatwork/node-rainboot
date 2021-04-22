@@ -28,6 +28,7 @@ export class Context {
     public constructor(request: IncomingMessage, response: ServerResponse) {
         this.request = request;
         this.response = response;
+        this.locals.time = Date.now();
     }
 
     /** ---------------------------------------------------
