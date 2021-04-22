@@ -99,6 +99,11 @@ export class Application {
             context.setRoute(route);
             const result = await route.controller[route.handle](context);
 
+            // 如果控制器已经发送响应
+            if (context.isHeadersSent()) {
+                return;
+            }
+
             // 如果存在内部跳转则按新路由再次执行
             if (context.url !== url) {
                 await this.handleRequest(context);

@@ -1,7 +1,7 @@
 // 版本信息
 export const enum App {
     NAME = 'Rainboot',
-    VERSION = '0.1.7',
+    VERSION = '0.1.8',
     REPO = 'https://github.com/seatwork/rainboot',
     ERROR_HANDLER = '/error'
 }
