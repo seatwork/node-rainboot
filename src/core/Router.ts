@@ -6,7 +6,7 @@ import { Route } from "../def/Route";
  */
 export class Router {
 
-    private static readonly PATH_REGEX: string = '[a-zA-Z0-9_@\\-\\.]+';
+    private static readonly PATH_REGEX: string = '[a-zA-Z0-9_@\\-\\.\\u4e00-\\u9fff]+';
     private routes: Route[] = []; // 路由容器
 
     /**
@@ -44,7 +44,7 @@ export class Router {
             // 匹配路径中的正则表达式
             const url = new URL(path, 'http://localhost');
             const pattern = route.path.replace(new RegExp(':(' + Router.PATH_REGEX + ')', 'g'), '(?<$1>' + Router.PATH_REGEX + ')')
-            const result = url.pathname.match('^' + pattern + '$')
+            const result = decodeURI(url.pathname).match('^' + pattern + '$')
             const params = result ? result.groups || Array.from(result).slice(1) : null
 
             if (params) {
