@@ -4,7 +4,7 @@ import { Context, Controller, Get, HttpError, Post, Request, Template } from "..
 export class TestController {
 
     @Request('/:id/:name')
-    public testRequest(context: Context) {
+    public async testRequest(context: Context) {
         return {
             method: context.method,
             url: context.url,
@@ -13,7 +13,7 @@ export class TestController {
             route: context.route,
             headers: context.headers,
             cookies: context.cookies,
-            body: context.body,
+            body: await context.body,
             error: context.error
         };
     }

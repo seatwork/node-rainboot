@@ -18,7 +18,6 @@ export class Context {
     private _query: any = {};   // 查询字符串参数
     private _error?: HttpError; // 错误对象
 
-    public body: any = null;    // 请求体
     public locals: any = {};    // 自定义属性
 
     /**
@@ -42,6 +41,7 @@ export class Context {
     public get method() { return this.request.method; }
     public get url() { return this.request.url; }
     public get headers() { return this.request.headers; }
+    public get body() { return this.parseRawBody(); }
     public get error() { return this._error; }
 
     /**
@@ -88,35 +88,6 @@ export class Context {
      */
     public forward(url: string) {
         this.request.url = url;
-    }
-
-    /**
-     * 解析请求体
-     * @returns
-     */
-    public parseRawBody() {
-        return new Promise((resolve, reject) => {
-            const buffer: Uint8Array[] = [];
-            this.request.on('data', chunk => {
-                buffer.push(chunk);
-            });
-            this.request.on('error', err => {
-                reject(err);
-            });
-            this.request.on('end', () => {
-                let data: any = Buffer.concat(buffer).toString('utf8');
-                const contentType = this.headers['content-type'];
-
-                if (contentType) {
-                    if (contentType.indexOf('application/x-www-form-urlencoded') >= 0) {
-                        data = parse(data);
-                    } else if (contentType.indexOf('application/json') >= 0) {
-                        data = this.tryParseJson(data);
-                    }
-                }
-                resolve(data);
-            });
-        });
     }
 
     /** ---------------------------------------------------
@@ -223,6 +194,35 @@ export class Context {
         } catch (e) {
             return data;
         }
+    }
+
+    /**
+     * 解析请求体
+     * @returns
+     */
+    private parseRawBody() {
+        return new Promise((resolve, reject) => {
+            const buffer: Uint8Array[] = [];
+            this.request.on('data', chunk => {
+                buffer.push(chunk);
+            });
+            this.request.on('error', err => {
+                reject(err);
+            });
+            this.request.on('end', () => {
+                let data: any = Buffer.concat(buffer).toString('utf8');
+                const contentType = this.headers['content-type'];
+
+                if (contentType) {
+                    if (contentType.indexOf('application/x-www-form-urlencoded') >= 0) {
+                        data = parse(data);
+                    } else if (contentType.indexOf('application/json') >= 0) {
+                        data = this.tryParseJson(data);
+                    }
+                }
+                resolve(data);
+            });
+        });
     }
 
 }

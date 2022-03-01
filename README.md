@@ -30,7 +30,7 @@ import { Context, Controller, Get, Post, Request, Template, HttpError } from "ra
 export class TestController {
 
     @Request('/:id/:name') // Routes are matched in order of addition
-    public testRequest(ctx: Context) {
+    public async testRequest(ctx: Context) {
         return {
             method: ctx.method,
             url: ctx.url,
@@ -39,7 +39,7 @@ export class TestController {
             route: ctx.route,
             headers: ctx.headers,
             cookies: ctx.cookies,
-            body: ctx.body,
+            body: await ctx.body,
             error: ctx.error
         };
     }
