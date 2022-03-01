@@ -2,6 +2,7 @@ import fs from 'fs';
 import Http from 'http';
 import path from 'path';
 import zlib from 'zlib';
+import { HttpError } from '..';
 import { App, HttpStatus, Method, MimeType } from '../def/Constant';
 import { Middleware, TemplateEngine } from '../def/Plugin';
 import { Context } from './Context';
@@ -20,7 +21,7 @@ export class Application {
      * 设置控制器目录（并扫描控制器）
      * @param dir
      */
-    public setControllerPath(dir: string) {
+    public controllers(dir: string) {
         this.scanControllers(path.resolve(dir));
     }
 
@@ -28,7 +29,7 @@ export class Application {
      * 设置静态资源目录（并添加静态路由）
      * @param dir
      */
-    public setStaticResourcePath(dir: string) {
+    public assets(dir: string) {
         this.router.addRoute({
             method: 'GET',
             path: path.join('/', dir, '/.+')
@@ -39,7 +40,7 @@ export class Application {
      * 设置模板引擎
      * @param engine
      */
-    public setTemplateEngine(engine: TemplateEngine) {
+    public engine(engine: TemplateEngine) {
         this.templateEngine = engine;
     }
 
@@ -47,7 +48,7 @@ export class Application {
      * 添加中间件
      * @param middleware
      */
-    public addMiddleware(middleware: Middleware) {
+    public use(middleware: Middleware) {
         this.middlewares.push(middleware);
     }
 
@@ -85,8 +86,7 @@ export class Application {
             // 查找路由（未找到则返回404状态）
             const route = this.router.findRoute(method, url);
             if (!route) {
-                context.send(`Route not found: ${url}`, HttpStatus.NOT_FOUND);
-                return;
+                throw new HttpError('Route not found', HttpStatus.NOT_FOUND);
             }
 
             // 没有控制器的路由作为静态资源处理
@@ -97,6 +97,7 @@ export class Application {
 
             // 执行路由控制器方法
             context.setRoute(route);
+            context.body = await context.parseRawBody();
             const result = await route.controller[route.handle](context);
 
             // 如果控制器已经发送响应
@@ -125,7 +126,7 @@ export class Application {
             }
             // 返回控制器执行结果
             context.send(result, context.error?.status);
-        } catch (e) {
+        } catch (e: any) {
             e.status = e.status || HttpStatus.INTERNAL_SERVER_ERROR;
 
             // 如果存在全局错误控制
@@ -150,7 +151,7 @@ export class Application {
 
         // 将虚拟相对路径去掉开头斜杠转换为绝对路径
         const filename = path.resolve(url.replace(/^\/+/, ''));
-        const extname = path.extname(filename).substr(1).toUpperCase();
+        const extname = path.extname(filename).substring(1).toUpperCase();
 
         // 资源不存在
         if (!fs.existsSync(filename)) {

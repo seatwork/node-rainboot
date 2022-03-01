@@ -9,75 +9,73 @@ npm i rainboot
 ## Create Entry
 ```
 // index.ts
-import { Application } from 'rainboot/core/Application';
+import { Rainboot } from 'rainboot';
 import { TestMiddleware } from './TestMiddleware';
 import { TestTemplateEngine } from './TestTemplateEngine';
 
-const app = new Application();
-app.setStaticResourcePath('test/assets');
-app.setControllerPath('test/controller');
-app.addMiddleware(new TestMiddleware());
-app.setTemplateEngine(new TestTemplateEngine())
+const app = new Rainboot();
+app.assets('test/assets');
+app.controllers('test/controller');
+app.use(new TestMiddleware());
+app.engine(new TestTemplateEngine())
 app.run();
 ```
 
 ## Create Controller
 ```
 // TestController.ts
-import { Context } from "rainboot/core/Context";
-import { Controller, Get, Post, Request, Template } from "rainboot/core/Decorator";
-import { HttpError } from "rainboot/def/HttpError";
+import { Context, Controller, Get, Post, Request, Template, HttpError } from "rainboot";
 
 @Controller()
 export class TestController {
 
-    @Request('/:id/:name')
-    public testRequest(context: Context) {
+    @Request('/:id/:name') // Routes are matched in order of addition
+    public testRequest(ctx: Context) {
         return {
-            method: context.method,
-            url: context.url,
-            params: context.params,
-            query: context.query,
-            route: context.route,
-            headers: context.headers,
-            cookies: context.cookies,
-            body: context.body,
-            error: context.error
+            method: ctx.method,
+            url: ctx.url,
+            params: ctx.params,
+            query: ctx.query,
+            route: ctx.route,
+            headers: ctx.headers,
+            cookies: ctx.cookies,
+            body: ctx.body,
+            error: ctx.error
         };
     }
 
     @Post('/post')
-    public async testPost(context: Context) {
-        console.log('body=', await context.body)
-        context.setHeader('Content-Type', 'text/plain')
+    public async testPost(ctx: Context) {
+        console.log('body=', await ctx.body)
+        ctx.setHeader('Content-Type', 'text/plain')
         return 'I am post back.';
     }
 
     @Get('/forward')
-    public testForward(context: Context) {
+    public testForward(ctx: Context) {
         this.hello();
-        context.setCookie('token', '%cDa^Pc)2-Nmc');
-        context.forward('/1000/nacy');
+        ctx.setCookie('token', '%cDa^Pc)2-Nmc');
+        ctx.forward('/1000/nacy');
     }
 
     @Get('/throw')
-    public testThrowError(context: Context) {
+    public testThrowError(ctx: Context) {
         throw new HttpError('Test Throw Error', 403);
     }
 
     @Get('/error')
-    public testError(context: Context) {
+    public testError(ctx: Context) {
         if (1 == 1) throw new HttpError('This is error in error')
         return {
-            status: context.error?.status,
-            message: context.error?.message,
-            stack: context.error?.stack
+            status: ctx.error?.status,
+            message: ctx.error?.message,
+            stack: ctx.error?.stack
         };
     }
 
     @Get('/template')
     @Template('index')
-    public testTemplate(context: Context) {
+    public testTemplate(ctx: Context) {
         return {
             title: 'page title',
             desc: 'page description'
@@ -94,7 +92,7 @@ export class TestController {
 ## Implements Template Engine
 ```
 // ArtTemplateEngine.ts
-import { TemplateEngine } from 'rainboot/def/Plugin';
+import { TemplateEngine } from 'rainboot';
 import template from 'art-template'; // npm i art-template or others
 
 export class ArtTemplateEngine implements TemplateEngine {
@@ -116,13 +114,12 @@ export class ArtTemplateEngine implements TemplateEngine {
 ## Implements Middleware
 ```
 // TestMiddleware.ts
-import { Context } from 'rainboot/core/Context';
-import { Middleware } from 'rainboot/def/Plugin';
+import { Context,Middleware } from 'rainboot';
 
 export class TestMiddleware implements Middleware {
 
-    public perform(context: Context) {
-        context.setHeader('x-custome-header', 'test middleware');
+    public perform(ctx: Context) {
+        ctx.setHeader('x-custome-header', 'test middleware');
     }
 
 }

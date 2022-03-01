@@ -1,10 +1,10 @@
-import { Application } from '../src/core/Application';
+import { Rainboot } from '../src';
 import { TestMiddleware } from './TestMiddleware';
 import { TestTemplateEngine } from './TestTemplateEngine';
 
-const app = new Application();
-app.setStaticResourcePath('test/assets');
-app.setControllerPath('test/controller');
-app.addMiddleware(new TestMiddleware());
-app.setTemplateEngine(new TestTemplateEngine())
+const app = new Rainboot();
+app.assets('test/assets');
+app.controllers('test/controller');
+app.use(new TestMiddleware());
+app.engine(new TestTemplateEngine())
 app.run();

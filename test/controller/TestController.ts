@@ -1,6 +1,4 @@
-import { Context } from "../../src/core/Context";
-import { Controller, Get, Post, Request, Template } from "../../src/core/Decorator";
-import { HttpError } from "../../src/def/HttpError";
+import { Context, Controller, Get, HttpError, Post, Request, Template } from "../../src";
 
 @Controller()
 export class TestController {

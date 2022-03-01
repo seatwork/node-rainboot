@@ -24,7 +24,7 @@ export class Router {
 
     /**
      * 添加路由
-     * @param route 
+     * @param route
      */
     public addRoute(route: Route) {
         this.routes.push(route);
@@ -34,7 +34,7 @@ export class Router {
      * 查找路由
      * @param method 请求方法
      * @param path 请求路径
-     * @returns 
+     * @returns
      */
     public findRoute(method: string, path: string) {
         for (let route of this.routes) {
@@ -57,8 +57,8 @@ export class Router {
 
     /**
      * 将 URLSearchParams 转换为简单对象
-     * @param params 
-     * @returns 
+     * @param params
+     * @returns
      */
     private convertSearchParams(params: URLSearchParams) {
         const entries = params.entries();

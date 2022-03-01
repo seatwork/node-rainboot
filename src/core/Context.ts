@@ -18,6 +18,7 @@ export class Context {
     private _query: any = {};   // 查询字符串参数
     private _error?: HttpError; // 错误对象
 
+    public body: any = null;    // 请求体
     public locals: any = {};    // 自定义属性
 
     /**
@@ -41,7 +42,6 @@ export class Context {
     public get method() { return this.request.method; }
     public get url() { return this.request.url; }
     public get headers() { return this.request.headers; }
-    public get body() { return this.parseRawBody(); }
     public get error() { return this._error; }
 
     /**
@@ -73,8 +73,8 @@ export class Context {
         if (cookie) {
             cookie.split(/;\s+/).forEach(c => {
                 const i = c.indexOf('=');
-                const k = c.substr(0, i);
-                const v = c.substr(i + 1);
+                const k = c.substring(0, i);
+                const v = c.substring(i + 1);
                 _cookies[k] = v;
             })
         }
@@ -88,6 +88,35 @@ export class Context {
      */
     public forward(url: string) {
         this.request.url = url;
+    }
+
+    /**
+     * 解析请求体
+     * @returns
+     */
+    public parseRawBody() {
+        return new Promise((resolve, reject) => {
+            const buffer: Uint8Array[] = [];
+            this.request.on('data', chunk => {
+                buffer.push(chunk);
+            });
+            this.request.on('error', err => {
+                reject(err);
+            });
+            this.request.on('end', () => {
+                let data: any = Buffer.concat(buffer).toString('utf8');
+                const contentType = this.headers['content-type'];
+
+                if (contentType) {
+                    if (contentType.indexOf('application/x-www-form-urlencoded') >= 0) {
+                        data = parse(data);
+                    } else if (contentType.indexOf('application/json') >= 0) {
+                        data = this.tryParseJson(data);
+                    }
+                }
+                resolve(data);
+            });
+        });
     }
 
     /** ---------------------------------------------------
@@ -182,35 +211,6 @@ export class Context {
     /** ---------------------------------------------------
      * 私有方法
      * ---------------------------------------------------*/
-
-    /**
-     * 解析请求体
-     * @returns
-     */
-    private parseRawBody() {
-        return new Promise((resolve, reject) => {
-            const buffer: Uint8Array[] = [];
-            this.request.on('data', chunk => {
-                buffer.push(chunk);
-            });
-            this.request.on('error', err => {
-                reject(err);
-            });
-            this.request.on('end', () => {
-                let data: any = Buffer.concat(buffer).toString('utf8');
-                const contentType = this.headers['content-type'];
-
-                if (contentType) {
-                    if (contentType.indexOf('application/x-www-form-urlencoded') >= 0) {
-                        data = parse(data);
-                    } else if (contentType.indexOf('application/json') >= 0) {
-                        data = this.tryParseJson(data);
-                    }
-                }
-                resolve(data);
-            });
-        });
-    }
 
     /**
      * 尝试解析Json字符串（解析错误时返回原始内容）
