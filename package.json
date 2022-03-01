@@ -1,6 +1,6 @@
 {
     "name": "rainboot",
-    "version": "0.1.12",
+    "version": "0.1.13",
     "description": "Lightweight restful framework based on typescript and decorators.",
     "license": "MIT",
     "author": "Ai Chen",
