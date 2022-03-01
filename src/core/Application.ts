@@ -97,7 +97,6 @@ export class Application {
 
             // 执行路由控制器方法
             context.setRoute(route);
-            context.body = await context.parseRawBody();
             const result = await route.controller[route.handle](context);
 
             // 如果控制器已经发送响应
